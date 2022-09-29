@@ -24,17 +24,23 @@ contract celonews {
         string category;
         string author;
         string content;
-        uint256 timestamp;
-        
+        uint256 timestamp;   
     }
 
     uint256 newsLength = 0;
     
-    uint256 postPrice = 3;
+    uint256 public postPrice;
+
+    address owner;
     
     mapping (uint => NewsItem) internal news;
     address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
     address internal agencyAddress = 0xb7BF999D966F287Cd6A1541045999aD5f538D3c6;
+
+    constructor(uint _postprice){
+        postPrice = _postprice;
+        owner = msg.sender;
+    }
     
     event News(
         address authorAddress,
@@ -77,8 +83,26 @@ contract celonews {
         );
         newsLength++;
     }
+
+    function tipAuthor(uint _index, uint _tip) public{
+        require(msg.sender != news[_index].authorAddress);
+        require(
+          IERC20Token(cUsdTokenAddress).transferFrom(
+            msg.sender,
+            news[_index].authorAddress,
+            _tip
+          ),    
+          "This transaction could not be performed"
+        );
+    }
     
-    function getNews(uint _index, bool _isRead) public view returns(
+
+    function changePostPrice(uint _price) public{
+        require(msg.sender == owner);
+        postPrice = _price;
+    }
+
+    function getNews(uint _index) public view returns(
         address payable,
         string memory,
         string memory,
@@ -101,8 +125,6 @@ contract celonews {
             newsItem.timestamp
         );
     }
-    
- 
     
       function getNewsLength() public view returns (uint) {
         return (newsLength);
